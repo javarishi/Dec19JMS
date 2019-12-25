@@ -1,16 +1,19 @@
-package com.h2k.jms;
+package com.h2k.jms.pubsub;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.MessageProducer;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
-public class TestMessageSender {
+public class PubSubTest {
 	
 	private static final String brokerURL = "tcp://localhost:61616";
 
@@ -24,22 +27,25 @@ public class TestMessageSender {
 			// Step 3 - Create a Session
 			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			// Step 4 - Create Destination
-			Queue testQueue = session.createQueue("H2K.DEC.2019.TEST");
-			// Step 5 - Message Producer
-			MessageProducer producer = session.createProducer(testQueue);
-			// Step 6 - Create a message
-			Message message = session.createTextMessage("My First Text Message to Queue");
-			// Step 7 - Send the message with Send() method
-			producer.send(message);
-			System.out.println("Message send is successful");
+			Topic testTopic = session.createTopic("H2K.DEC.2019.TOPIC");
+			// Step 5 - Message Consumer
+			MessageConsumer consumerOne = session.createConsumer(testTopic);
+			consumerOne.setMessageListener(new FirstSubscriber());
 			
-			session.close();
-			connection.close();
+			MessageConsumer consumerTwo = session.createConsumer(testTopic);
+			consumerTwo.setMessageListener(new SecondSubscriber());
+			
+			MessageConsumer consumerThree = session.createConsumer(testTopic);
+			consumerThree.setMessageListener(new ThirdSubscriber());
+		
 		}catch(JMSException jmEx) {
 			jmEx.printStackTrace();
+		}catch (Exception e) {
+			// TODO: handle exception
 		}
 		
 
 	}
+
 
 }
